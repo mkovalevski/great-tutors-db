@@ -16,7 +16,7 @@ def seed_tutors(data):
         for goal in db.session.query(Goal).all():
             if goal.goal in teacher['goals']:
                 goal.tutors.append(tutor)
-    db.session.bulk_save_objects(tutors)
+    db.session.bulk_save_objects(tutors, return_defaults=True)
     db.session.commit()
 
 
@@ -25,7 +25,7 @@ def seed_goals(data):
     for g in data:
         goal = Goal(goal=g)
         goals.append(goal)
-    db.session.bulk_save_objects(goals)
+    db.session.bulk_save_objects(goals, return_defaults=True)
     db.session.commit()
 
 
