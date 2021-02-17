@@ -51,6 +51,8 @@ class Booking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     phone = db.Column(db.String, nullable=False)
+    time = db.Column(db.String, nullable=False)
+    day = db.Column(db.String, nullable=False)
 
     tutor_id = db.Column(db.Integer, db.ForeignKey('tutors.id'))
     tutor = db.relationship('Tutor', back_populates='bookings')
@@ -117,29 +119,29 @@ def index():
 @app.route('/all/', methods=['GET', 'POST'])
 def tutors():
     tutors = db.session.query(Tutor).all()
-    shuffle(tutors)
-    form = SortForm()
-    return render_template('all.html', tutors=tutors, amount=len(tutors), form=form)
-
-
-@app.route('/all/sort/', methods=['GET', 'POST'])
-def sort():
-    tutors = db.session.query(Tutor).all()
-    sort_ids = {
-        '1': 'random',
-        '2': ['rating', True],
-        '3': ['price', True],
-        '4': ['price', False],
-    }
-    form = SortForm()
-    sort_id = form.data['sort']
-    sort_attribute = sort_ids[sort_id]
-    shuffle(tutors)
-    return render_template('all_sort.html',
-                           tutors=tutors,
-                           amount=len(tutors),
-                           form=form,
-                           sort_attribute=sort_attribute)
+    if request.method == 'POST':
+        sort_ids = {
+            '1': 'random',
+            '2': ['rating', True],
+            '3': ['price', True],
+            '4': ['price', False],
+        }
+        form = SortForm()
+        sort_id = form.data['sort']
+        sort_attribute = sort_ids[sort_id]
+        shuffle(tutors)
+        return render_template('all_sort.html',
+                               tutors=tutors,
+                               amount=len(tutors),
+                               form=form,
+                               sort_attribute=sort_attribute)
+    else:
+        shuffle(tutors)
+        form = SortForm()
+        return render_template('all.html',
+                               tutors=tutors,
+                               amount=len(tutors),
+                               form=form)
 
 
 @app.route('/goals/<goal>/')
@@ -157,8 +159,8 @@ def goal(goal):
 
 @app.route('/profiles/<int:id>/')
 def profile(id):
-    tutor = db.session.query(Tutor).get(id)
-    schedule = db.session.query(Tutor).get(id).free
+    tutor = db.session.query(Tutor).get_or_404(id)
+    schedule = db.session.query(Tutor).get_or_404(id).free
     busy_days = count_busy_days(json.loads(schedule))
     goals = db.session.query(Goal).all()
     return render_template('profile.html',
@@ -195,10 +197,10 @@ def make_request():
 def book(id, day, time):
     booking_form = BookingForm()
     if request.method == 'POST':
-        tutor = db.session.query(Tutor).get(id)
+        tutor = db.session.query(Tutor).get_or_404(id)
         name = booking_form.name.data
         phone = booking_form.phone.data
-        user_booking = Booking(name=name, phone=phone, tutor_id=id)
+        user_booking = Booking(name=name, phone=phone, time=time, day=day, tutor_id=id)
         db.session.add(user_booking)
         db.session.commit()
         return render_template('booking_done.html',
@@ -208,7 +210,7 @@ def book(id, day, time):
                                day=day,
                                time=time)
     else:
-        tutor = db.session.query(Tutor).get(id)
+        tutor = db.session.query(Tutor).get_or_404(id)
         return render_template('booking.html',
                                id=id,
                                day=week[day],

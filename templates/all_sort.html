@@ -9,7 +9,7 @@
 
             <p class="lead float-left d-inline-block mt-2 mb-0"><strong>{{ amount }} преподавателей в базе</strong></p>
 
-            <form class="float-right d-inline-block" action="/all/sort/" method="POST">
+            <form class="float-right d-inline-block" action="/all/" method="POST">
                 {{ form.csrf_token }}
               <div class="form-inline">
                   {{ form.sort(class="custom-select my-1 mr-2") }}
